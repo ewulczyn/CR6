@@ -43,7 +43,7 @@ addDepth <-function(d, base, county){
   return(merge(x = d, y = depth, by = "UID", all.x=TRUE))
 }
 
-getAll<-function(base, counties, chems){
+getAll<-function(base, counties, chems, getDepth){
   d=NULL
   for(county in counties){
     print(county)
@@ -56,7 +56,8 @@ getAll<-function(base, counties, chems){
       print(chem)
       dt=addChemical(dt,base, county, chem )
     }
-    dt=addDepth(dt, base, county)
+    if(getDepth)
+      dt=addDepth(dt, base, county)
     dt$county=county
     if(is.null(d)){
       d=dt

@@ -1,9 +1,9 @@
-source('~/Desktop/Academics/CR6/merge.r')
+source('cleaning/merge.r')
 counties=c( 'Alameda', 'Alpine', 'Amador', 'Butte', 'Calaveras', 'Colusa', 'ContraCosta', 'DelNorte', 'ElDorado', 'Fresno', 'Glenn', 'Humboldt', 'Imperial', 'Inyo', 'Kern', 'Kings', 'Lake', 'Lassen', 'LosAngeles', 'Madera', 'Marin', 'Mariposa', 'Mendocino', 'Merced', 'Modoc', 'Mono', 'Monterey', 'Napa', 'Nevada', 'Orange', 'Placer', 'Plumas', 'Riverside', 'Sacramento', 'SanBenito', 'SanBernardino', 'SanDiego', 'SanFrancisco', 'SanJoaquin', 'SanLuisObispo', 'SanMateo', 'SantaBarbara', 'SantaClara', 'SantaCruz', 'Shasta', 'Sierra', 'Siskiyou', 'Solano', 'Sonoma', 'Stanislaus', 'Sutter', 'Tehama', 'Trinity', 'Tulare', 'Tuolumne', 'Ventura', 'Yolo', 'Yuba')
-base="/Users/bholley/Desktop/Academics/CR6/StatewideEDF/";
+base="../CR6Data/StatewideEDF/";
 
 #NO3
-d=getAll(base, counties, c('NO3'))
+d=getAll(base, counties, c('NO3'), F)
 d=d[!is.na(d$NO3), ]
 plot(d$NO3, d$CR6)
 plot(d$NO3, d$CR6, xlim=c(0.1, 100), ylim=c(0.1, 100))
@@ -13,7 +13,7 @@ plot(d$NO3, d$CR6, xlim=c(0.1, 100), ylim=c(0.1, 100))
 
 
 #FE
-d=getAll(base, counties, c('FE'))
+d=getAll(base, counties, c('FE'), F)
 d=d[!is.na(d$FE), ]
 plot(d$FE, d$CR6, xlim=c(0.1, 1000), ylim=c(0.1, 1000))
 plot(d$FE, log(d$CR6), xlim=c(0.1, 1000), ylim=c(0.1, 20))
@@ -22,7 +22,7 @@ plot(d$FE, log(d$CR6), xlim=c(0.1, 2000), ylim=c(0.1, 20))
 plot(log(d$FE), d$CR6, ylim=c(0.1, 20), xlim=c(0.1, 20))
 
 #MN
-d=getAll(base, counties, c('MN'))
+d=getAll(base, counties, c('MN'), F)
 d=d[!is.na(d$MN), ]
 plot(d$MN, d$CR6)
 plot(d$MN, d$CR6, xlim=c(0.1, 1000), ylim=c(0.1, 1000))
@@ -30,7 +30,7 @@ plot(d$MN, log(d$CR6), xlim=c(0.1, 1000), ylim=c(0.1, 20))
 
 
 #NH4
-d=getAll(base, counties, c('NH3NH4N'))
+d=getAll(base, counties, c('NH3NH4N'), F)
 d=d[!is.na(d$NH3NH4N), ]
 plot(d$NH3NH4N, d$CR6)
 plot(d$NH3NH4N, d$CR6, xlim=c(0.1, 1000), ylim=c(0.1, 1000))
@@ -38,7 +38,7 @@ plot(d$NH3NH4N, log(d$CR6), xlim=c(0.1, 1000), ylim=c(0.1, 20))
 
 
 #CR
-dCR=getAll(base, counties, c("CR"))
+dCR=getAll(base, counties, c("CR"), F)
 dCR=dCR[!is.na(dCR$CR), ]
 dCR=dCR[dCR$CR>dCR$CR6, ]
 plot(dCR$CR, dCR$CR6)
