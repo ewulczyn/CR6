@@ -1,0 +1,14 @@
+Chromium 6 Project
+========================================================
+
+```{r}
+setwd("/Users/FatemaAlGharbi/Desktop/CR6/clean")
+chems = read.csv("allChems.csv")
+cr6 = read.csv("allCR6.csv")
+head(cr6,10)
+d=chems[!is.na(chems$NO3), ]
+# MDR {Missing Data Rate}
+MDR_NO3 = sum(is.na(chems$NO3))/dim(chems)[1]
+cor(d$NO3, d$CR6)
+plot(d$NO3, d$CR6)
+```
