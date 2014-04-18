@@ -8,15 +8,19 @@ reformatDateAndId <-function(d, oldDatesName, oldDatesFormat, siteIDsName, wellI
 }
 
 base = "../CR6Data/counties/"
-getCountyChromium <- function(base, county){
-  d=read.csv(paste(base, county, "/raw/CR6.csv", sep=""), sep="\t", header=T)
-  d$CR6=d$RESULT
+
+
+getCountyChem <- function(base, county, basechem){
+  d=read.csv(paste(base, county, "/raw/", basechem, ".csv", sep=""), sep="\t", header=T)
+  d[, basechem]=d$RESULT
   d=reformatDateAndId(d, "DATE", "%m/%d/%Y", "WELL.ID", "WELL.NAME")
-  d=d[, c("UID", "WELL.ID", "WELL.NAME", "CR6", "date", "yearmonth","year", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
+  d=d[, c("UID", "WELL.ID", "WELL.NAME", basechem, "date", "yearmonth","year", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
   d=d[!duplicated(d$UID), ]
   d=d[order(d$UID), ]
   return(d)
 }
+
+
 
 addChemical <-function(d, base, county, chem){
   dnewchem=read.csv(paste(base,county, "/raw/", chem, ".csv", sep=""), sep="\t", header=T)
@@ -45,17 +49,19 @@ addDepth <-function(d, base, county){
   return(merge(x = d, y = depth, by = c("UID"), all.x=TRUE))
 }
 
-getAll<-function(base, counties, chems, getDepth){
+getAll<-function(base, counties, chems, basechem, getDepth){
   d=NULL
   for(county in counties){
     print(county)
-    dt=getCountyChromium(base, county)
+    dt=getCountyChem(base, county, basechem)
     if(nrow(dt)==0){
       print("no chromium")
       next
     }
     for(chem in chems){
       print(chem)
+      if(chem==basechem)
+        next 
       dt=addChemical(dt,base, county, chem )
     }
     if(getDepth)
