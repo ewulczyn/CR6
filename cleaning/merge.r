@@ -7,18 +7,19 @@ reformatDateAndId <-function(d, oldDatesName, oldDatesFormat, siteIDsName, wellI
   return(d)
 }
 
+base = "../CR6Data/counties/"
 getCountyChromium <- function(base, county){
-  d=read.csv(paste(base, county, "_CR6.xls", sep=""), sep="\t", header=T)
+  d=read.csv(paste(base, county, "/raw/CR6.csv", sep=""), sep="\t", header=T)
   d$CR6=d$RESULT
   d=reformatDateAndId(d, "DATE", "%m/%d/%Y", "WELL.ID", "WELL.NAME")
-  d=d[, c("UID", "WELL.ID", "WELL.NAME", "CR6", "date", "yearmonth","year")]
+  d=d[, c("UID", "WELL.ID", "WELL.NAME", "CR6", "date", "yearmonth","year", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
   d=d[!duplicated(d$UID), ]
   d=d[order(d$UID), ]
   return(d)
 }
 
 addChemical <-function(d, base, county, chem){
-  dnewchem=read.csv(paste(base,county, "_", chem, ".xls", sep=""), sep="\t", header=T)
+  dnewchem=read.csv(paste(base,county, "/raw/", chem, ".csv", sep=""), sep="\t", header=T)
   if(nrow(dnewchem)==0){
     print("this county does not have data for this chemical")
     d[, chem]=NA
@@ -32,7 +33,7 @@ addChemical <-function(d, base, county, chem){
 }
 
 addDepth <-function(d, base, county){
-  depth=read.csv(paste(base,county, "GEOWell.txt", sep=""), sep="\t", header=T)
+  depth=read.csv(paste(base,county, "/raw/GEOWell.csv", sep=""), sep="\t", header=T)
   if(nrow(depth)==0){
     print("this county does not have depth data")
     d[, "Z"]=NA
@@ -40,7 +41,8 @@ addDepth <-function(d, base, county){
   }
   depth=reformatDateAndId(depth, "GW_MEAS_DATE", "%Y-%m-%d", "GLOBAL_ID", "FIELD_POINT_NAME")
   depth=depth[!duplicated(depth$UID), ]
-  return(merge(x = d, y = depth, by = "UID", all.x=TRUE))
+  depth=depth[, c("UID", "DTW")]
+  return(merge(x = d, y = depth, by = c("UID"), all.x=TRUE))
 }
 
 getAll<-function(base, counties, chems, getDepth){

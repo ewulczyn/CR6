@@ -24,7 +24,7 @@ def downloadGAMMA(county, chem, base):
 			code.write(f.read())
 
 
-base="/Users/bholley/Desktop/Academics/CR6/StatewideEDF/"
+base="../CR6Data/datadump/"
 
 """
 #for c in counties:

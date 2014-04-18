@@ -1,6 +1,6 @@
 source('cleaning/merge.r')
 counties=c( 'Alameda', 'Alpine', 'Amador', 'Butte', 'Calaveras', 'Colusa', 'ContraCosta', 'DelNorte', 'ElDorado', 'Fresno', 'Glenn', 'Humboldt', 'Imperial', 'Inyo', 'Kern', 'Kings', 'Lake', 'Lassen', 'LosAngeles', 'Madera', 'Marin', 'Mariposa', 'Mendocino', 'Merced', 'Modoc', 'Mono', 'Monterey', 'Napa', 'Nevada', 'Orange', 'Placer', 'Plumas', 'Riverside', 'Sacramento', 'SanBenito', 'SanBernardino', 'SanDiego', 'SanFrancisco', 'SanJoaquin', 'SanLuisObispo', 'SanMateo', 'SantaBarbara', 'SantaClara', 'SantaCruz', 'Shasta', 'Sierra', 'Siskiyou', 'Solano', 'Sonoma', 'Stanislaus', 'Sutter', 'Tehama', 'Trinity', 'Tulare', 'Tuolumne', 'Ventura', 'Yolo', 'Yuba')
-base="../CR6Data/StatewideEDF/";
+base=base = "../CR6Data/counties/"
 
 #NO3
 d=getAll(base, counties, c('NO3'), F)
@@ -50,11 +50,11 @@ dCR=dCR[dCR$CR<8000, ]
 plot(dCR$CR, dCR$CR6)
 
 #depth
-d=getAll(base, counties, c())
+d=getAll(base, counties, c(), T)
 d=d[!is.na(d$DTW), ]
 plot(d$DTW, d$CR6, xlim=c(0.1, 10), ylim=c(0.1, 200))
 
-d=getAll(base, c("Yolo"), c())
+d=getAll(base, c("Yolo"), c(),T)
 d=d[!is.na(d$DTW), ]
 plot(d$DTW, d$CR6, xlim=c(0.1, 10), ylim=c(0.1, 200))
 
