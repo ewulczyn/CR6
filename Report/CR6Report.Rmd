@@ -1,0 +1,81 @@
+Chromium 6 Project
+========================================================
+
+```{r}
+library(ggplot2)
+library(reshape2)
+
+setwd("/Users/FatemaAlGharbi/Desktop/CR6/clean")
+chems = read.csv("allChems.csv")
+cr6 = read.csv("allCR6.csv")
+
+head(cr6,10)
+dim(chems)
+d=chems[!is.na(chems$NO3), ]
+# MDR {Missing Data Rate}
+MDR_NO3 = sum(is.na(chems$NO3))/dim(chems)[1]
+cor(d$NO3, d$CR6)
+
+plot(d$NO3, d$CR6)
+```
+
+Creating a matrix with rows as counties and columns as records of CR6 over years
+```{r}
+
+createMatrix<- function(d){
+  counties = levels(factor(d$county))
+  d$county<- as.character(d$county)
+  yr = sort(unique(d$year))
+
+  mtc =matrix(data = NA, nrow = length(counties), ncol = length(unique(d$year)))
+
+  for(i in 1:dim(mtc)[1]){
+    for(j in 1:dim(mtc)[2]){
+      s = subset(d,county == counties[i])
+      q = subset(s, year == yr[j])
+      mtc[i,j] = mean(q$CR6)
+    }
+  }
+
+  mtc = cbind(counties,mtc)
+  year_string = yr
+  for(i in 1:length(yr)) year_string[i] = paste(yr[i])
+  colnames(mtc) = c("counties", year_string)
+
+  return(mtc)
+}
+
+newmtc <- createMatrix(d)
+
+View(newmtc)
+
+#Comparing CR6 with NO3 over time for all counties
+mean_CR6= rep(0, length(yr))
+mean_NO3 = rep(0, length(yr))
+
+for(i in 1:length(yr)){
+  s = subset(d,year == yr[i])
+  mean_CR6[i] = mean(s$CR6)
+  mean_NO3[i] = mean(s$NO3)
+}
+
+mCR6 = data.frame(mean_CR6)
+mNO3 = data.frame(mean_NO3)
+
+mCR6 = cbind(mCR6, yr)
+mNO3 = cbind(mNO3, yr)
+
+mCR6 = melt(mCR6, id = c("yr"))
+mNO3 = melt(mNO3, id = c("yr"))
+
+mCR6$type = "CR6"
+mNO3$type = "NO3"
+
+dd.melt = rbind(mCR6, mNO3)
+
+ggplot(dd.melt,aes(x= dd.melt$yr, y=value))+ 
+  geom_line(aes(colour=type)) + 
+  scale_colour_manual(values=c("blue","red"))
+
+
+```
