@@ -1,12 +1,15 @@
+library(plyr)
+
 getTimeSlice<-function(d, sites, chem, sdate, edate){
   t = d[(d$date<edate)  & (sdate<d$date), ]
   if(nrow(t)==0){
     return(NULL)
     print("no data")
   }
-  print(t)
-  agg=aggregate(t$CR6, by=list(t$ID), FUN=mean, na.rm=TRUE)
-  names(agg)=c("ID", "CR6")
+  print(dim(t))
+  colnames(t)[3]="chem"
+  agg=aggregate(t$chem, by=list(t$ID), FUN=mean, na.rm=TRUE)
+  names(agg)=c("ID", chem)
   f = (merge(x = agg, y = sites, by = "ID", all.x=TRUE))
   return(f)
 }
@@ -16,7 +19,7 @@ base = "../CR6Data/counties/"
 county="Yolo"
 chem = "CR6"
 #d = getCountyChem(base, county, chem)
-d = read.csv("../CR6Data/clean/allCR6.csv", sep=",", header=T)
+d = read.csv("../CR6Data/clean/allNO3.csv", sep=",", header=T)
 
 d$date=as.Date(d$date)
 d$year=NULL
@@ -38,7 +41,7 @@ while(edate<mdate){
   f = getTimeSlice(d, sites, chem, sdate, edate)
   if(!is.null(f)){
     #write.csv(f, file=paste(base, county, "/clean/ts/",sdate ,"-", edate ,".csv", sep=""), row.names=F) 
-    write.csv(f, file=paste("../CR6Data/clean/ts/",sdate ,"to", edate ,".csv", sep=""), row.names=F) 
+    write.csv(f, file=paste("../CR6Data/clean/ts_NO3_180/",sdate ,"to", edate ,".csv", sep=""), row.names=F) 
   }
   sdate=sdate+span
   edate=edate+span

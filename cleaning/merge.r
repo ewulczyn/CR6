@@ -21,7 +21,6 @@ getCountyChem <- function(base, county, basechem){
 }
 
 
-
 addChemical <-function(d, base, county, chem){
   dnewchem=read.csv(paste(base,county, "/raw/", chem, ".csv", sep=""), sep="\t", header=T)
   if(nrow(dnewchem)==0){
