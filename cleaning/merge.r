@@ -3,7 +3,8 @@ reformatDateAndId <-function(d, oldDatesName, oldDatesFormat, siteIDsName, wellI
   d$date=format(d$newdate, "%Y-%m-%d")
   d$yearmonth=format(d$newdate, "%Y-%m")
   d$year=format(d$newdate, "%Y")
-  d$UID=do.call(paste, c(d[c("yearmonth", siteIDsName, wellIDsName)], sep = " "))
+  d$MID=do.call(paste, c(d[c("yearmonth", siteIDsName, wellIDsName)], sep = " "))
+  d$WID = do.call(paste, c(d[c("yearmonth", siteIDsName, wellIDsName)], sep = " "))
   return(d)
 }
 
@@ -14,9 +15,9 @@ getCountyChem <- function(base, county, basechem){
   d=read.csv(paste(base, county, "/raw/", basechem, ".csv", sep=""), sep="\t", header=T)
   d[, basechem]=d$RESULT
   d=reformatDateAndId(d, "DATE", "%m/%d/%Y", "WELL.ID", "WELL.NAME")
-  d=d[, c("UID", "WELL.ID", "WELL.NAME", basechem, "date", "yearmonth","year", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
-  d=d[!duplicated(d$UID), ]
-  d=d[order(d$UID), ]
+  d=d[, c("MID","WID", "WELL.ID", "WELL.NAME", basechem, "date", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
+  d=d[!duplicated(d$MID), ]
+  d=d[order(d$MID), ]
   return(d)
 }
 
@@ -30,9 +31,9 @@ addChemical <-function(d, base, county, chem){
   }
   dnewchem[, chem]=dnewchem$RESULT
   dnewchem=reformatDateAndId(dnewchem, "DATE", "%m/%d/%Y", "WELL.ID", "WELL.NAME")
-  dnewchem=dnewchem[, c("UID", chem)]
-  dnewchem=dnewchem[!duplicated(dnewchem$UID), ]
-  return(merge(x = d, y = dnewchem, by = "UID", all.x=TRUE))
+  dnewchem=dnewchem[, c("MID", chem)]
+  dnewchem=dnewchem[!duplicated(dnewchem$MID), ]
+  return(merge(x = d, y = dnewchem, by = "MID", all.x=TRUE))
 }
 
 addDepth <-function(d, base, county){
@@ -43,9 +44,9 @@ addDepth <-function(d, base, county){
     return(d)
   }
   depth=reformatDateAndId(depth, "GW_MEAS_DATE", "%Y-%m-%d", "GLOBAL_ID", "FIELD_POINT_NAME")
-  depth=depth[!duplicated(depth$UID), ]
-  depth=depth[, c("UID", "DTW")]
-  return(merge(x = d, y = depth, by = c("UID"), all.x=TRUE))
+  depth=depth[!duplicated(depth$MID), ]
+  depth=depth[, c("MID", "DTW")]
+  return(merge(x = d, y = depth, by = c("MID"), all.x=TRUE))
 }
 
 getAll<-function(base, counties, chems, basechem, getDepth){
@@ -54,7 +55,7 @@ getAll<-function(base, counties, chems, basechem, getDepth){
     print(county)
     dt=getCountyChem(base, county, basechem)
     if(nrow(dt)==0){
-      print("no chromium")
+      print("no basechem")
       next
     }
     for(chem in chems){
@@ -73,7 +74,15 @@ getAll<-function(base, counties, chems, basechem, getDepth){
     }
     
   }
-  return(d)
+  
+  #Now give every well belonging to the same site the same location
+  dg = d[, c("WELL.ID", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE" )]
+  dg= dg[!duplicated(dg$WELL.ID), ]
+  d$APPROXIMATE.LATITUDE = NULL
+  d$APPROXIMATE.LONGITUDE = NULL
+  d2 = merge(x = d, y = dg, by = c("WELL.ID"), all.x=TRUE)
+  
+  return(d2)
 }
 
 
