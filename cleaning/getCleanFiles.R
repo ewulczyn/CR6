@@ -6,7 +6,7 @@ base = "../CR6Data/counties/"
 
 # per county
 for(county in counties){
-  d=getAll(base, c(county), chems,"CR6, " T)
+  d=getAll(base, c(county), chems,"CR6", T)
   write.csv(d, file=paste(base, county, "/clean/allChems.csv", sep=""), row.names=F) 
 }
 
@@ -21,3 +21,27 @@ write.csv(d, file="../CR6Data/clean/allCR6.csv", row.names=F)
 #all counties NO3
 d=getAll(base, counties, c(), "NO3", F)
 write.csv(d, file="../CR6Data/clean/allNO3.csv", row.names=F)
+
+# all conties per chem
+for(c in chems){
+  d=getAll(base, counties, c(),c, F, F)
+  print(c)
+  write.csv(d, file=paste("../CR6Data/allChems/",c ,".csv", sep=""), row.names=F) 
+  
+}
+
+for(c in chems){
+  print(c)
+  d = read.csv(file=paste("../CR6Data/allChems/",c ,".csv", sep=""))
+  if(nrow(d)>0){
+    d=d[, c("WID", "date", c)]
+    d = na.omit(d)
+    write.csv(d, file=paste("../CR6Data/allChemsReduced/",c ,".csv", sep=""), row.names=F)
+    indices = d[,c]>0
+    if(sum(indices)>0){
+      d = d[indices, ]
+      write.csv(d, file=paste("../CR6Data/allChemsReduced/",c ,"_G0.csv", sep=""), row.names=F) 
+    }
+  }
+  
+}

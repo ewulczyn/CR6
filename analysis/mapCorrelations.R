@@ -8,7 +8,7 @@ c1 = "CR6"
 c2 = "DTW"
 dbase = "../CR6Data/clean/correlations/"
 
-d=getAll(base, counties, c(), c1, T)
+d=getAll(base, counties, c(), c1, T, T)
 
 
 d = d[order(d$WELL.ID), ]
@@ -21,14 +21,33 @@ dcorr = d[indices,c("WELL.ID", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
 dcorr$corr = NA
 dcorr$count = 0
 
+plotdir = paste(dbase,"plots", c1, "_",c2, sep="")
+unlink(plotdir, recursive = TRUE)
+dir.create(plotdir );
+
+
 for(i in 1:(length(indices)-1)){
     sidx = (indices[i])
     eidx = (indices[i+1])-1
     ds = d[sidx:eidx, ]
-    ds = ds[!is.na(c2), ]
+    ds = ds[!is.na(ds[c2]), ]
+    name = ds[1, "WELL.ID"]
+    
     print(sidx)
-    dcorr$corr[i] = cor(ds[c1], ds[c2]) 
-    dcorr$count[i] = nrow(ds)
+    
+    if(nrow(ds)>2){
+      cr = cor(ds[c1], ds[c2])
+      if(!is.na(cr) && cr !=0){
+        dcorr$corr[i] = cr
+        dcorr$count[i] = nrow(ds)
+        png(paste(plotdir, "/", name, ".png",  sep=""))
+        plot(ds[,c1],ds[,c2], col="blue")
+        title(main=name, sub=cr, xlab=c1, ylab=c2)
+        dev.off()
+      }
+    
+    }
+    
 }
 
 dcorr = dcorr[!is.na(dcorr$corr), ]

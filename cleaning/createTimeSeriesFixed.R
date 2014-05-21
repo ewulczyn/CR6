@@ -18,7 +18,7 @@ getAggregatedTimeSlice<-function(d, sites, chem, sdate, edate){
 }
 
 createTimeSeriesFixed <- function(chem, span){
-  d=getAll(base, counties, c(), chem, F)
+  d=getAll(base, counties, c(), chem, F, F)
   d$date=as.Date(d$date)
   d$year=NULL
   d$yearmonth=NULL
