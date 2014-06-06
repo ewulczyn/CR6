@@ -1,19 +1,27 @@
+setwd("~/Desktop/Academics/CR6")
 source('cleaning/merge.r')
 library(ggplot2)
+library(data.table)
+base = "../CR6Data/cluster_data/"
+
 
 labels = c()
 postchems= c()
 ds= list()
 vi=1
 i=1
+
+extension = "no0_log/"
+
+base = paste(base, extension, sep="");
+
 for(vi in 1:length(chems)){
   c = chems[vi]
+  print(c)
   l = full_chem_names[vi]
-  f = paste("../CR6Data/allChemsReduced/",c ,".csv", sep="");
+  f = paste(base,c ,".csv", sep="");
   if(file.exists(f)){
-    d = read.csv(file=f)[, c("WID", "date", c)]
-    d = na.omit(d)
-    #d$date=as.Date(d$date)
+    d = data.table(read.csv(file=f), key="key")
     ds[[i]] <- d
     i=i+1
     labels = append(labels, l)
@@ -25,43 +33,26 @@ n = length(postchems)
 
 dcorr = matrix(0,n,n)
 dscorr = matrix(0,n,n)
-dcorr_log = matrix(0,n,n)
-dscorr_log = matrix(0,n,n)
-
-
 counts = matrix(0,n,n)
-counts_log = matrix(0,n,n)
 
 
 
 for(i in 2:n){
+  print(i)
   for(j in 1:(i-1)){
-    print(i*10000+j)
     ci = postchems[[i]]
     cj = postchems[[j]]
     di = ds[[i]]
     dj = ds[[j]]
-    
-    dexact = merge(x=di[, c(ci, "date", "WID")], y=dj[, c(cj, "date", "WID")], by=c("WID", "date"), all=F)
-    dcorr[i, j] = cor(dexact[,ci], dexact[,cj])
-    dscorr[i, j] = cor(dexact[,ci], dexact[,cj], method=c("spearman"))
-    counts[i, j] = nrow(dexact)
-    
-    dexact[, ci ] = log(dexact[, ci ])
-    dexact[, cj] = log(dexact[, cj])
-    
-    #is.na(dexact) <- do.call(cbind,lapply(dexact, is.infinite))
-    #dexact = na.omit(dexact)
-    dcorr_log[i, j] = cor(dexact[,ci], dexact[,cj])
-    dscorr_log[i,j] = cor(dexact[,ci], dexact[,cj], method=c("spearman"))
-    counts_log[i, j] = nrow(dexact)
-    
-    
-    
+    if(nrow(di)!=0 && nrow(dj)!=0){
+      d = merge(x=di, y=dj)
+      dcorr[i, j] = cor(d[[ci]], d[[cj]])
+      dscorr[i, j] = cor(d[[ci]], d[[cj]], method=c("spearman"))
+      counts[i, j] = nrow(d)
+    }
   }
 }
 
-#weighted nearest
 
 rownames(dcorr) = labels[1:n]
 colnames(dcorr) = labels[1:n]
@@ -70,59 +61,106 @@ colnames(dscorr) = labels[1:n]
 rownames(counts) = labels[1:n]
 colnames(counts) = labels[1:n]
 
-rownames(dcorr_log) = labels[1:n]
-colnames(dcorr_log) = labels[1:n]
-rownames(dscorr_log) = labels[1:n]
-colnames(dscorr_log) = labels[1:n]
-rownames(counts_log) = labels[1:n]
-colnames(counts_log) = labels[1:n]
-
-
 dcorr = as.data.frame(dcorr)
 dcorr[is.na(dcorr)] <-0
 
 dscorr = as.data.frame(dscorr)
 dscorr[is.na(dscorr)] <-0
 
-dcorr_log = as.data.frame(dcorr_log)
-dcorr_log[is.na(dcorr_log)] <-0
+write.csv(dcorr, file=paste(base, "pcorr.csv", sep=""), row.names=T) 
+write.csv(dscorr, file=paste(base, "scorr.csv", sep=""), row.names=T) 
+write.csv(counts, file=paste(base, "counts.csv", sep=""), row.names=T) 
 
-dscorr_log = as.data.frame(dscorr_log)
-dscorr_log[is.na(dscorr_log)] <-0
+dcorr[counts<30] = 0
+dscorr[counts<30] = 0
+
+dcorr_pos = dcorr
+dcorr_pos[dcorr>0] = 0
+
+dcorr_neg = dcorr
+dcorr_neg[dcorr<0] = 0
+
+dscorr_pos = dscorr
+dscorr_pos[dscorr>0] = 0
+
+dscorr_neg = dscorr
+dscorr_neg[dscorr<0] = 0
 
 
-
-
+dbase = paste("../CR6Data/dendrograms/", extension, sep="");
 
 fit <-hclust(as.dist(1 - (dcorr + 1)/2),method="ward" )
+pdf(paste(dbase, "p/all.pdf", sep=""),width=50, height=15)
+plot(fit)
+dev.off()
 
-svg("../CR6Data/clean/clustering1/pcorr.SVG",width=50)
+fit <-hclust(as.dist(dcorr_pos),method="ward" )
+pdf(paste(dbase, "p/pos.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
+
+fit <-hclust(as.dist(dcorr_neg),method="ward" )
+pdf(paste(dbase, "p/neg.pdf", sep=""),width=50)
+plot(fit, hang=-1, cex=0.5)
+dev.off()
+
+
 
 fit <-hclust(as.dist(1 - (dscorr + 1)/2),method="ward" )
-
-svg("../CR6Data/clean/clustering/scorr.SVG",width=50)
+pdf(paste(dbase, "s/all.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
 
-fit <-hclust(as.dist(1 - (dcorr_log + 1)/2),method="ward" )
-
-svg("../CR6Data/clean/clustering/pcorr_log.SVG",width=50)
+fit <-hclust(as.dist(dscorr_pos),method="ward" )
+pdf(paste(dbase, "s/pos.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
 
-fit <-hclust(as.dist(1 - (dscorr_log + 1)/2),method="ward" )
-
-svg("../CR6Data/clean/clustering/scorr_log.SVG",width=50)
+fit <-hclust(as.dist(dscorr_neg),method="ward" )
+pdf(paste(dbase, "s/neg.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
 
-write.csv(dcorr, file="../CR6Data/clean/clustering/pcorr.csv", row.names=T) 
-write.csv(dscorr, file="../CR6Data/clean/clustering/scorr.csv", row.names=T) 
-write.csv(dcorr_log, file="../CR6Data/clean/clustering/pcorr_log.csv", row.names=T) 
-write.csv(dscorr_log, file="../CR6Data/clean/clustering/pcorr_log.csv", row.names=T) 
-write.csv(counts, file="../CR6Data/clean/clustering/counts.csv", row.names=T) 
-write.csv(counts_log, file="../CR6Data/clean/clustering/counts_log.csv", row.names=T) 
+
+#correllations
+
+chem = "Chromium, Hexavalent (Cr6)"
+c1=dcorr[chem,  ]
+c2=dcorr[, chem]
+idx = which(names(dcorr) == chem)
+c2=c2[idx:length(c2)]
+c1[1, idx:213] = c2
+dc = t(c1)
+dc = data.frame( dc, row.names(dc))
+names(dc) = c("corr", "names")
+
+dc = dc[dc$corr< -0.1 | dc$corr>0.1, ]
 
 
+ggplot(dc, aes(x=reorder(names, corr), y=corr)) + geom_point(size=3) + # Use a larger dot theme_bw() +
+  theme(axis.text.x = element_text(angle=60, hjust=1),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"))
+ggsave(file=paste(dbase, "p/cors.pdf", sep=""), width=20)
+
+
+chem = "Chromium, Hexavalent (Cr6)"
+c1=dscorr[chem,  ]
+c2=dscorr[, chem]
+idx = which(names(dscorr) == chem)
+c2=c2[idx:length(c2)]
+c1[1, idx:213] = c2
+dc = t(c1)
+dc = data.frame( dc, row.names(dc))
+names(dc) = c("corr", "names")
+
+dc = dc[dc$corr< -0.1 | dc$corr>0.1, ]
+
+
+ggplot(dc, aes(x=reorder(names, corr), y=corr)) + geom_point(size=3) + # Use a larger dot theme_bw() +
+  theme(axis.text.x = element_text(angle=60, hjust=1),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"))
+ggsave(file=paste(dbase, "s/cors.pdf", sep=""), width=20)

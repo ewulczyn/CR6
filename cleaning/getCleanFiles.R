@@ -22,26 +22,95 @@ write.csv(d, file="../CR6Data/clean/allCR6.csv", row.names=F)
 d=getAll(base, counties, c(), "NO3", F)
 write.csv(d, file="../CR6Data/clean/allNO3.csv", row.names=F)
 
+
+
+# prep for clustering
+
 # all conties per chem
 for(c in chems){
-  d=getAll(base, counties, c(),c, F, F)
+  d=getAll(base, counties, c(),c, F, F)[, c("WID", "date", c)]
   print(c)
   write.csv(d, file=paste("../CR6Data/allChems/",c ,".csv", sep=""), row.names=F) 
   
 }
 
+# prep no zeroes
 for(c in chems){
   print(c)
-  d = read.csv(file=paste("../CR6Data/allChems/",c ,".csv", sep=""))
-  if(nrow(d)>0){
-    d=d[, c("WID", "date", c)]
-    d = na.omit(d)
-    write.csv(d, file=paste("../CR6Data/allChemsReduced/",c ,".csv", sep=""), row.names=F)
-    indices = d[,c]>0
-    if(sum(indices)>0){
-      d = d[indices, ]
-      write.csv(d, file=paste("../CR6Data/allChemsReduced/",c ,"_G0.csv", sep=""), row.names=F) 
+  f = paste("../CR6Data/allChemsReduced/",c ,".csv", sep="");
+  if(file.exists(f)){
+    d = read.csv(file=f)
+    if(nrow(d)>0 && c %in% names(d)){
+      d$key = do.call(paste, c(d[c("WID", "date")], sep = " "))
+      d$WID=NULL
+      d$date=NULL
+      d = na.omit(d)
+      write.csv(d, file=paste("../CR6Data/cluster_data/with0/",c ,".csv", sep=""), row.names=F)
+      d0 =d 
+      indices = d0[,c]>0
+      if(sum(indices)>0){
+        d0 = d0[indices, ]
+        write.csv(d0, file=paste("../CR6Data/cluster_data/no0/",c ,".csv", sep=""), row.names=F)
+        d0[, c] = log(d0[,c])
+        d0=na.omit(d0)
+        write.csv(d0, file=paste("../CR6Data/cluster_data/no0_log/",c ,".csv", sep=""), row.names=F)
+      }
+      
+      dmin = d
+      ci = dmin[, c]
+      uci=unique(ci)
+      ci_min = uci[order(uci)[2]]
+      print(ci_min)
+      ci[ci==0] = ci_min
+      dmin[, c]=ci
+      print(min(dmin[, c]))
+      write.csv(dmin, file=paste("../CR6Data/cluster_data/min/",c ,".csv", sep=""), row.names=F) 
+      dmin[, c] = log(dmin[,c])
+      dmin=na.omit(dmin)
+      write.csv(dmin, file=paste("../CR6Data/cluster_data/min_log/",c ,".csv", sep=""), row.names=F)
     }
   }
-  
 }
+
+
+#cap chromium at 100
+
+# prep no zeroes
+c="CR6"
+  f = paste("../CR6Data/allChemsReduced/",c ,".csv", sep="");
+  if(file.exists(f)){
+    d = read.csv(file=f)
+    d = d[d$CR6<100, ]
+    if(nrow(d)>0 && c %in% names(d)){
+      d$key = do.call(paste, c(d[c("WID", "date")], sep = " "))
+      d$WID=NULL
+      d$date=NULL
+      d = na.omit(d)
+      write.csv(d, file=paste("../CR6Data/cluster_data/with0/",c ,".csv", sep=""), row.names=F)
+      d0 =d 
+      indices = d0[,c]>0
+      if(sum(indices)>0){
+        d0 = d0[indices, ]
+        write.csv(d0, file=paste("../CR6Data/cluster_data/no0/",c ,".csv", sep=""), row.names=F)
+        d0[, c] = log(d0[,c])
+        d0=na.omit(d0)
+        write.csv(d0, file=paste("../CR6Data/cluster_data/no0_log/",c ,".csv", sep=""), row.names=F)
+      }
+      
+      dmin = d
+      ci = dmin[, c]
+      uci=unique(ci)
+      ci_min = uci[order(uci)[2]]
+      print(ci_min)
+      ci[ci==0] = ci_min
+      dmin[, c]=ci
+      print(min(dmin[, c]))
+      write.csv(dmin, file=paste("../CR6Data/cluster_data/min/",c ,".csv", sep=""), row.names=F) 
+      dmin[, c] = log(dmin[,c])
+      dmin=na.omit(dmin)
+      write.csv(dmin, file=paste("../CR6Data/cluster_data/min_log/",c ,".csv", sep=""), row.names=F)
+    }
+  }
+
+
+
