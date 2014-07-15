@@ -13,13 +13,16 @@ d = d[d$CR>0,]
 d = d[!is.na(d$CR6), ]
 d$R = d$CR6/d$CR
 
+#plot ratio of CR6 to total chromium over NO3
 d = d[d$R<=1, ]
 sp <- ggplot(d, aes(x=NO3, y=R))
 sp + geom_point(alpha=.1)+ xlim(0, 100)+ ylim(0, 1)
 
 
-
-
+# find the threshold for Nitrogen by which to group wells
+# such that differneces in the means of the ratio of CR6 to chromium
+# is as large as possible
+# 
 diffs = c();
 ts = seq(1,100,by=0.1)
 for(t in ts){
@@ -28,10 +31,16 @@ for(t in ts){
 plot(ts, diffs)
 
 diffmax = min(diffs)
+print('largest observed difference')
+print(diffmax)
+
 tmax = ts[which(diffs==min(diffs))][1]
 n = nrow(d)
 k = nrow(d[d$NO3<tmax,])
 
+#test the probability of seeing such a high difference
+#in means when you split the wells into 2 groups
+#arbitrarily (basically a hypothsis test)
 sdiffs = c()
 for(i in 1:5000){
   s = sample(1:n, k,replace=FALSE)
@@ -41,6 +50,8 @@ for(i in 1:5000){
 }
 hist(sdiffs)
 significance = sum(sdiffs<diffmax)/length(sdiffs)
+print("p-value:")
+print(significance)
 
 qplot(R, data=d, binwidth=0.1)
 qplot(R, data=d[d$NO3<tmax,], binwidth=0.1)
