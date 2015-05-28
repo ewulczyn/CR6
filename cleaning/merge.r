@@ -16,8 +16,11 @@ reformatDateAndId <-function(d, oldDatesName, oldDatesFormat, siteIDsName, wellI
 base = "../CR6Data/counties/"
 
 
-getCountyChem <- function(base, county, basechem){
+getCountyChem <- function(base, county, basechem, datasets=c()){
   d=read.csv(paste(base, county, "/raw/", basechem, ".csv", sep=""), sep="\t", header=T)
+  if(length(datasets != 0)){
+    d = d[d$DATASET %in% datasets, ]
+  }
   d[, basechem]=d$RESULT
   d=reformatDateAndId(d, "DATE", "%m/%d/%Y", "WELL.ID", "WELL.NAME")
   d=d[, c("MID","WID", "WELL.ID", "WELL.NAME", basechem, "date", "APPROXIMATE.LATITUDE", "APPROXIMATE.LONGITUDE")]
@@ -55,11 +58,11 @@ addDepth <-function(d, base, county, complete){
   return(merge(x = d, y = depth, by = c("MID"), all.x=!complete))
 }
 
-getAll<-function(base, counties, chems, basechem, getDepth, complete){
+getAll<-function(base, counties, chems, basechem, getDepth, complete, datasets=c()){
   d=NULL
   for(county in counties){
     #print(county)
-    dt=getCountyChem(base, county, basechem)
+    dt=getCountyChem(base, county, basechem, datasets)
     if(nrow(dt)==0){
       #print("no basechem")
       next

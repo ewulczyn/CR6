@@ -1,9 +1,9 @@
-setwd("~/Desktop/Academics/CR6")
+setwd("~/CR6")
 source('cleaning/merge.r')
 library(ggplot2)
 library(data.table)
-base = "../CR6Data/cluster_data/"
-
+base = "../CR6Data/non_edf/cluster_data/"
+dendrogram_base = "../CR6Data/non_edf/dendrograms/"
 
 labels = c()
 postchems= c()
@@ -11,7 +11,7 @@ ds= list()
 vi=1
 i=1
 
-extension = "no0_log/"
+extension = "min_log/"
 
 base = paste(base, extension, sep="");
 
@@ -87,7 +87,7 @@ dscorr_neg = dscorr
 dscorr_neg[dscorr<0] = 0
 
 
-dbase = paste("../CR6Data/dendrograms/", extension, sep="");
+dbase = paste(dendrogram_base, extension, sep="");
 
 fit <-hclust(as.dist(1 - (dcorr + 1)/2),method="ward" )
 pdf(paste(dbase, "p/all.pdf", sep=""),width=50, height=15)
@@ -99,10 +99,11 @@ pdf(paste(dbase, "p/pos.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
 
-fit <-hclust(as.dist(dcorr_neg),method="ward" )
-pdf(paste(dbase, "p/neg.pdf", sep=""),width=50)
-plot(fit, hang=-1, cex=0.5)
-dev.off()
+#does not make sense
+#fit <-hclust(as.dist(dcorr_neg),method="ward" )
+#pdf(paste(dbase, "p/neg.pdf", sep=""),width=50)
+#plot(fit, hang=-1, cex=0.5)
+#dev.off()
 
 
 
@@ -116,10 +117,10 @@ pdf(paste(dbase, "s/pos.pdf", sep=""),width=50)
 plot(fit, hang=-1, cex=0.5)
 dev.off()
 
-fit <-hclust(as.dist(dscorr_neg),method="ward" )
-pdf(paste(dbase, "s/neg.pdf", sep=""),width=50)
-plot(fit, hang=-1, cex=0.5)
-dev.off()
+#fit <-hclust(as.dist(dscorr_neg),method="ward" )
+#pdf(paste(dbase, "s/neg.pdf", sep=""),width=50)
+#plot(fit, hang=-1, cex=0.5)
+#dev.off()
 
 
 #correllations
